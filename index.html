@@ -252,7 +252,7 @@
             bird.y += bird.velocity;
 
             if (frameCount % 90 === 0) {
-                let gap = 300;
+                let gap = 160;
                 let topH = Math.random() * (canvas.height - gap - 100) + 50;
                 pipes.push({ x: canvas.width, top: topH, bottom: topH + gap, width: 50 });
             }
