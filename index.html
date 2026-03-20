@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JADEARL - CYBER FLAP + FEEDBACK</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap');
+
+        body {
+            margin: 0;
+            background: #0d001a;
+            color: #ff007f;
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- Reverted to Original Fixed Size --- */
+        #gameCanvas {
+            border: 4px solid #7000ff;
+            border-radius: 15px;
+            background: #05000d;
+            box-shadow: 0 0 30px rgba(112, 0, 255, 0.4);
+            max-width: 95vw; /* Safe for mobile */
+        }
+
+        .ui-overlay {
+            position: absolute;
+            text-align: center;
+            background: rgba(13, 0, 26, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid #ff007f;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        #pause-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background: transparent;
+            color: #ff007f;
+            border: 2px solid #ff007f;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            box-shadow: 0 0 10px #ff007f;
+        }
+
+        /* --- Neon Feedback Button --- */
+        #feedback-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            padding: 10px 15px;
+            background: rgba(112, 0, 255, 0.2);
+            color: #fff;
+            border: 1px solid #7000ff;
+            border-radius: 30px;
+            text-decoration: none;
+            font-size: 10px;
+            box-shadow: 0 0 10px #7000ff;
+            z-index: 200;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 20px;
+            background: linear-gradient(45deg, #ff007f, #7000ff);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 15px #ff007f;
+            font-family: 'Orbitron', sans-serif;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="pause-btn" onclick="togglePause()">PAUSE (P)</button>
+    <div id="score-display" style="font-size: 30px; margin-bottom: 10px;">SCORE: 0</div>
+    
+    <canvas id="gameCanvas" width="400" height="500"></canvas>
+
+    <a id="feedback-btn" href="mailto:caszlemartinez2001@gmail.com?subject=Game%20Feedback&body=Hi%20Jade!%20Here%20is%20my%20feedback:">
+        REPORT BUG / FEEDBACK
+    </a>
+
+    <div id="menu" class="ui-overlay">
+        <h1 id="menu-title">CYBER FLAP</h1>
+        <p id="menu-text">TAP OR SPACE TO FLY</p>
+        <button id="main-btn" onclick="resetGame()">START ENGINE</button>
+    </div>
+
+    <div id="pause-menu" class="ui-overlay" style="display: none;">
+        <h1>SYSTEM PAUSED</h1>
+        <button onclick="togglePause()">RESUME</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score-display');
+        const menu = document.getElementById('menu');
+        const pauseMenu = document.getElementById('pause-menu');
+
+        let bird = { x: 50, y: 250, w: 30, h: 30, gravity: 0.6, lift: -10, velocity: 0 };
+        let pipes = [];
+        let frameCount = 0;
+        let score = 0;
+        let gameRunning = false;
+        let isPaused = false;
+
+        function resetGame() {
+            bird.y = 250;
+            bird.velocity = 0;
+            pipes = [];
+            score = 0;
+            frameCount = 0;
+            gameRunning = true;
+            isPaused = false;
+            menu.style.display = 'none';
+            pauseMenu.style.display = 'none';
+            scoreDisplay.innerText = "SCORE: 0";
+            requestAnimationFrame(update);
+        }
+
+        function togglePause() {
+            if (!gameRunning) return;
+            isPaused = !isPaused;
+            pauseMenu.style.display = isPaused ? 'block' : 'none';
+            if (!isPaused) requestAnimationFrame(update);
+        }
+
+        // Controls (Keys + Mouse + Touch)
+        window.addEventListener('keydown', (e) => { 
+            if(e.code === 'Space') flap(); 
+            if(e.code === 'KeyP') togglePause();
+        });
+        canvas.addEventListener('mousedown', flap);
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            flap();
+        }, {passive: false});
+
+        function flap() {
+            if (gameRunning && !isPaused) bird.velocity = bird.lift;
+        }
+
+        function update() {
+            if (!gameRunning || isPaused) return;
+
+            bird.velocity += bird.gravity;
+            bird.y += bird.velocity;
+
+            if (frameCount % 90 === 0) {
+                let gap = 150;
+                let topH = Math.random() * (canvas.height - gap - 100) + 50;
+                pipes.push({ x: canvas.width, top: topH, bottom: topH + gap, width: 50 });
+            }
+
+            for (let i = pipes.length - 1; i >= 0; i--) {
+                pipes[i].x -= 3;
+                if (pipes[i].x + pipes[i].width < bird.x && !pipes[i].passed) {
+                    score++;
+                    scoreDisplay.innerText = "SCORE: " + score;
+                    pipes[i].passed = true;
+                }
+                if (bird.x + bird.w > pipes[i].x && bird.x < pipes[i].x + pipes[i].width &&
+                    (bird.y < pipes[i].top || bird.y + bird.h > pipes[i].bottom)) {
+                    gameOver();
+                }
+                if (pipes[i].x < -50) pipes.splice(i, 1);
+            }
+
+            if (bird.y + bird.h > canvas.height || bird.y < 0) gameOver();
+
+            draw();
+            frameCount++;
+            requestAnimationFrame(update);
+        }
+
+        function draw() {
+            ctx.fillStyle = "#05000d";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#7000ff";
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "#7000ff";
+            pipes.forEach(p => {
+                ctx.fillRect(p.x, 0, p.width, p.top);
+                ctx.fillRect(p.x, p.bottom, p.width, canvas.height - p.bottom);
+            });
+
+            ctx.fillStyle = "#ff007f";
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = "#ff007f";
+            ctx.fillRect(bird.x, bird.y, bird.w, bird.h);
+            ctx.shadowBlur = 0;
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            menu.style.display = 'block';
+            document.getElementById('menu-title').innerText = "CRASHED!";
+            document.getElementById('menu-text').innerText = "FINAL SCORE: " + score;
+            document.getElementById('main-btn').innerText = "REBOOT";
+        }
+    </script>
+</body>
+</html>
