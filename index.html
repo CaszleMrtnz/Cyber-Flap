@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JADEARL - CYBER FLAP + FEEDBACK</title>
+    <title>JADE - CYBER FLAP + 3S TIMER</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@900&display=swap');
 
@@ -20,13 +20,12 @@
             overflow: hidden;
         }
 
-        /* --- Reverted to Original Fixed Size --- */
         #gameCanvas {
             border: 4px solid #7000ff;
             border-radius: 15px;
             background: #05000d;
             box-shadow: 0 0 30px rgba(112, 0, 255, 0.4);
-            max-width: 95vw; /* Safe for mobile */
+            max-width: 95vw;
         }
 
         .ui-overlay {
@@ -38,6 +37,17 @@
             border: 2px solid #ff007f;
             backdrop-filter: blur(10px);
             z-index: 100;
+        }
+
+        /* --- 3 Second Countdown Style --- */
+        #countdown-text {
+            position: absolute;
+            font-size: 100px;
+            color: #fff;
+            text-shadow: 0 0 20px #ff007f, 0 0 40px #7000ff;
+            display: none;
+            z-index: 150;
+            pointer-events: none;
         }
 
         #pause-btn {
@@ -54,7 +64,6 @@
             box-shadow: 0 0 10px #ff007f;
         }
 
-        /* --- Neon Feedback Button --- */
         #feedback-btn {
             position: absolute;
             bottom: 20px;
@@ -91,6 +100,8 @@
     
     <canvas id="gameCanvas" width="400" height="500"></canvas>
 
+    <div id="countdown-text">3</div>
+
     <a id="feedback-btn" href="mailto:caszlemartinez2001@gmail.com?subject=Game%20Feedback&body=Hi%20Jade!%20Here%20is%20my%20feedback:">
         REPORT BUG / FEEDBACK
     </a>
@@ -98,7 +109,7 @@
     <div id="menu" class="ui-overlay">
         <h1 id="menu-title">CYBER FLAP</h1>
         <p id="menu-text">TAP OR SPACE TO FLY</p>
-        <button id="main-btn" onclick="resetGame()">START ENGINE</button>
+        <button id="main-btn" onclick="startTimer()">START ENGINE</button>
     </div>
 
     <div id="pause-menu" class="ui-overlay" style="display: none;">
@@ -112,6 +123,7 @@
         const scoreDisplay = document.getElementById('score-display');
         const menu = document.getElementById('menu');
         const pauseMenu = document.getElementById('pause-menu');
+        const countdownText = document.getElementById('countdown-text');
 
         let bird = { x: 50, y: 250, w: 30, h: 30, gravity: 0.6, lift: -10, velocity: 0 };
         let pipes = [];
@@ -119,6 +131,31 @@
         let score = 0;
         let gameRunning = false;
         let isPaused = false;
+        let inCountdown = false; // New state to block input
+
+        // --- 3 Second Timer Logic ---
+        function startTimer() {
+            menu.style.display = 'none';
+            countdownText.style.display = 'block';
+            inCountdown = true;
+            let count = 3;
+            
+            countdownText.innerText = count;
+
+            let timer = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countdownText.innerText = count;
+                } else if (count === 0) {
+                    countdownText.innerText = "GO!";
+                } else {
+                    clearInterval(timer);
+                    countdownText.style.display = 'none';
+                    inCountdown = false;
+                    resetGame(); // Start the game loop
+                }
+            }, 1000);
+        }
 
         function resetGame() {
             bird.y = 250;
@@ -128,20 +165,18 @@
             frameCount = 0;
             gameRunning = true;
             isPaused = false;
-            menu.style.display = 'none';
             pauseMenu.style.display = 'none';
             scoreDisplay.innerText = "SCORE: 0";
             requestAnimationFrame(update);
         }
 
         function togglePause() {
-            if (!gameRunning) return;
+            if (!gameRunning || inCountdown) return; 
             isPaused = !isPaused;
             pauseMenu.style.display = isPaused ? 'block' : 'none';
             if (!isPaused) requestAnimationFrame(update);
         }
 
-        // Controls (Keys + Mouse + Touch)
         window.addEventListener('keydown', (e) => { 
             if(e.code === 'Space') flap(); 
             if(e.code === 'KeyP') togglePause();
@@ -153,11 +188,12 @@
         }, {passive: false});
 
         function flap() {
-            if (gameRunning && !isPaused) bird.velocity = bird.lift;
+            // Player cannot flap during the 3s countdown
+            if (gameRunning && !isPaused && !inCountdown) bird.velocity = bird.lift;
         }
 
         function update() {
-            if (!gameRunning || isPaused) return;
+            if (!gameRunning || isPaused || inCountdown) return;
 
             bird.velocity += bird.gravity;
             bird.y += bird.velocity;
@@ -214,6 +250,8 @@
             document.getElementById('menu-title').innerText = "CRASHED!";
             document.getElementById('menu-text').innerText = "FINAL SCORE: " + score;
             document.getElementById('main-btn').innerText = "REBOOT";
+            // Ensure reboot also triggers the 3s timer
+            document.getElementById('main-btn').setAttribute("onclick", "startTimer()");
         }
     </script>
 </body>
