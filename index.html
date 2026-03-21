@@ -52,10 +52,17 @@
 
         #level-up-text { font-size: 40px; top: 20%; }
 
-        #pause-btn {
+        #top-controls {
             position: absolute;
             top: 20px;
             right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 50;
+        }
+
+        #pause-btn {
             padding: 10px 15px;
             background: transparent;
             color: #ff007f;
@@ -65,7 +72,28 @@
             font-family: 'Orbitron', sans-serif;
         }
 
-        button {
+        #feedback-btn {
+            padding: 10px 15px;
+            background: rgba(255, 0, 127, 0.1); 
+            color: #ff007f;
+            border: 2px solid #ff007f;
+            border-radius: 5px;
+            font-family: 'Orbitron', sans-serif;
+            text-decoration: none;
+            text-align: center;
+            font-size: 14px;
+            box-shadow: 0 0 10px #ff007f, inset 0 0 10px #ff007f;
+            text-shadow: 0 0 5px #ff007f;
+            transition: 0.3s;
+        }
+
+        #feedback-btn:hover {
+            background: #ff007f;
+            color: white;
+            box-shadow: 0 0 20px #ff007f;
+        }
+
+        .action-btn {
             padding: 15px 30px;
             font-size: 20px;
             background: linear-gradient(45deg, #ff007f, #7000ff);
@@ -75,34 +103,53 @@
             cursor: pointer;
             font-family: 'Orbitron', sans-serif;
             margin-top: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .action-btn:hover {
+            filter: brightness(1.2);
+        }
+
+        #score-container {
+            text-align: center;
+            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
 
-    <button id="pause-btn" onclick="togglePause()">PAUSE (P)</button>
-    <div id="score-display" style="font-size: 30px; margin-bottom: 10px;">SCORE: 0</div>
+    <div id="top-controls">
+        <button id="pause-btn" onclick="togglePause()">PAUSE (P)</button>
+        <a id="feedback-btn" href="mailto:caszlemartinez2001@gmail.com?subject=Cyber Flap Feedback">FEEDBACK</a>
+    </div>
+
+    <div id="score-container">
+        <div id="score-display" style="font-size: 30px;">SCORE: 0</div>
+        <div id="best-score-display" style="font-size: 20px; color: #00f2ff; margin-top: 5px;">BEST: 0</div>
+    </div>
     
     <canvas id="gameCanvas" width="400" height="500"></canvas>
 
-    <div id="countdown-text">2</div>
+    <div id="countdown-text">3</div>
     <div id="level-up-text">LEVEL UP!</div>
 
     <div id="menu" class="ui-overlay">
         <h1 id="menu-title">CYBER FLAP</h1>
         <p id="menu-text">GOOD LUCK FAM!</p>
-        <button id="main-btn" onclick="startTimer(2)">START GAME</button>
+        <button class="action-btn" onclick="startTimer(3)">START GAME</button>
     </div>
 
     <div id="pause-menu" class="ui-overlay" style="display: none;">
         <h1>GAME PAUSED</h1>
-        <button onclick="startResumeTimer()">RESUME</button>
+        <button class="action-btn" onclick="startResumeTimer()">RESUME</button>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const scoreDisplay = document.getElementById('score-display');
+        const bestScoreDisplay = document.getElementById('best-score-display');
         const levelUpDisplay = document.getElementById('level-up-text');
         const menu = document.getElementById('menu');
         const pauseMenu = document.getElementById('pause-menu');
@@ -112,18 +159,35 @@
         let pipes = [];
         let frameCount = 0;
         let score = 0;
+        let bestScore = localStorage.getItem('cyberFlapBestScore') || 0;
         let gameRunning = false;
         let isPaused = false;
         let inCountdown = false;
 
-        // --- Achievement Themes ---
+        bestScoreDisplay.innerText = "BEST: " + bestScore;
+
         const themes = [
-            { score: 0, bird: "#ff007f", pipe: "#7000ff", bg: "#0d001a" }, // Default
-            { score: 10, bird: "#00f2ff", pipe: "#0044ff", bg: "#000d1a" }, // Neon Blue
-            { score: 20, bird: "#adff2f", pipe: "#008000", bg: "#0a1a00" }, // Acid Green
-            { score: 30, bird: "#ffff00", pipe: "#ff8c00", bg: "#1a0f00" }, // Gold Rush
-            { score: 40, bird: "#ffffff", pipe: "#ff0000", bg: "#1a0000" }, // Red Alert
-            { score: 50, bird: "#ff00ff", pipe: "#ffffff", bg: "#1a1a1a" }  // Monochromic Pink
+            { score: 0, bird: "#ff007f", pipe: "#7000ff", bg: "#0d001a" },
+            { score: 10, bird: "#00f2ff", pipe: "#0044ff", bg: "#000d1a" },
+            { score: 20, bird: "#adff2f", pipe: "#008000", bg: "#0a1a00" },
+            { score: 30, bird: "#ffff00", pipe: "#ff8c00", bg: "#1a0f00" },
+            { score: 40, bird: "#ffffff", pipe: "#ff0000", bg: "#1a0000" },
+            { score: 50, bird: "#ff00ff", pipe: "#ffffff", bg: "#1a1a1a" },
+            { score: 60, bird: "#00ffcc", pipe: "#0088aa", bg: "#001a1a" },
+            { score: 70, bird: "#ff3300", pipe: "#aa0000", bg: "#1a0500" },
+            { score: 80, bird: "#cc00ff", pipe: "#5500aa", bg: "#11001a" },
+            { score: 90, bird: "#ffcc00", pipe: "#aa8800", bg: "#1a1600" },
+            { score: 100, bird: "#00ff00", pipe: "#00aa00", bg: "#001a00" },
+            { score: 110, bird: "#ff0088", pipe: "#aa0044", bg: "#1a000d" },
+            { score: 120, bird: "#88ccff", pipe: "#0044aa", bg: "#000a1a" },
+            { score: 130, bird: "#ffaa00", pipe: "#aa4400", bg: "#1a0a00" },
+            { score: 140, bird: "#aa00ff", pipe: "#4400aa", bg: "#0a001a" },
+            { score: 150, bird: "#00ffff", pipe: "#008888", bg: "#001a1a" },
+            { score: 160, bird: "#ff5555", pipe: "#aa0000", bg: "#1a0000" },
+            { score: 170, bird: "#aaff00", pipe: "#44aa00", bg: "#0a1a00" },
+            { score: 180, bird: "#ff00cc", pipe: "#aa0055", bg: "#1a0011" },
+            { score: 190, bird: "#55aaff", pipe: "#0022aa", bg: "#00051a" },
+            { score: 200, bird: "#ffffff", pipe: "#aaaaaa", bg: "#000000" } 
         ];
 
         let currentTheme = themes[0];
@@ -176,6 +240,7 @@
             inCountdown = true;
             let count = seconds;
             countdownText.innerText = count;
+            
             let timer = setInterval(() => {
                 count--;
                 if (count > 0) countdownText.innerText = count;
@@ -193,8 +258,9 @@
             pauseMenu.style.display = 'none';
             countdownText.style.display = 'block';
             inCountdown = true;
-            let count = 2;
+            let count = 3;
             countdownText.innerText = count;
+            
             let timer = setInterval(() => {
                 count--;
                 if (count > 0) countdownText.innerText = count;
@@ -224,13 +290,17 @@
 
         function togglePause() {
             if (!gameRunning || inCountdown) return;
-            if (!isPaused) { isPaused = true; pauseMenu.style.display = 'block'; }
-            else { startResumeTimer(); }
+            if (!isPaused) { 
+                isPaused = true; 
+                pauseMenu.style.display = 'block'; 
+            } else { 
+                startResumeTimer(); 
+            }
         }
 
         window.addEventListener('keydown', (e) => {
             if (e.code === 'Space') {
-                if (!gameRunning && !inCountdown) startTimer(2);
+                if (!gameRunning && !inCountdown) startTimer(3);
                 else flap();
             }
             if (e.code === 'KeyP') togglePause();
@@ -264,7 +334,7 @@
                     scoreDisplay.innerText = "SCORE: " + score;
                     pipes[i].passed = true;
                     playSound('score');
-                    checkAchievements(); // Check for theme change
+                    checkAchievements(); 
                 }
                 if (bird.x + bird.w > pipes[i].x && bird.x < pipes[i].x + pipes[i].width &&
                     (bird.y < pipes[i].top || bird.y + bird.h > pipes[i].bottom)) gameOver();
@@ -279,13 +349,11 @@
         }
 
         function draw() {
-            // Update page background based on theme
             document.body.style.backgroundColor = currentTheme.bg;
 
             ctx.fillStyle = "#05000d";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Draw Pipes with Theme Color
             ctx.fillStyle = currentTheme.pipe;
             ctx.shadowBlur = 15;
             ctx.shadowColor = currentTheme.pipe;
@@ -294,7 +362,6 @@
                 ctx.fillRect(p.x, p.bottom, p.width, canvas.height - p.bottom);
             });
 
-            // Draw Bird with Theme Color
             ctx.fillStyle = currentTheme.bird;
             ctx.shadowBlur = 20;
             ctx.shadowColor = currentTheme.bird;
@@ -308,6 +375,12 @@
             menu.style.display = 'block';
             document.getElementById('menu-title').innerText = "CRASHED!";
             document.getElementById('menu-text').innerText = "FINAL SCORE: " + score;
+            
+            if (score > bestScore) {
+                bestScore = score;
+                localStorage.setItem('cyberFlapBestScore', bestScore);
+                bestScoreDisplay.innerText = "BEST: " + bestScore;
+            }
         }
     </script>
 </body>
