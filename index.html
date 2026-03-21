@@ -52,13 +52,19 @@
 
         #level-up-text { font-size: 40px; top: 20%; }
 
-        #top-controls {
+        /* Left Side Control */
+        #left-controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 50;
+        }
+
+        /* Right Side Control */
+        #right-controls {
             position: absolute;
             top: 20px;
             right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
             z-index: 50;
         }
 
@@ -85,6 +91,7 @@
             box-shadow: 0 0 10px #ff007f, inset 0 0 10px #ff007f;
             text-shadow: 0 0 5px #ff007f;
             transition: 0.3s;
+            display: inline-block;
         }
 
         #feedback-btn:hover {
@@ -119,9 +126,12 @@
 </head>
 <body>
 
-    <div id="top-controls">
-        <button id="pause-btn" onclick="togglePause()">PAUSE (P)</button>
+    <div id="left-controls">
         <a id="feedback-btn" href="mailto:caszlemartinez2001@gmail.com?subject=Cyber Flap Feedback">FEEDBACK</a>
+    </div>
+
+    <div id="right-controls">
+        <button id="pause-btn" onclick="togglePause()">PAUSE (P)</button>
     </div>
 
     <div id="score-container">
