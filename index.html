@@ -40,7 +40,7 @@
             z-index: 100;
         }
 
-        #countdown-text, #level-up-text {
+        #countdown-text, #level-up-text, #motivational-text {
             position: absolute;
             font-size: 80px;
             color: #fff;
@@ -51,6 +51,20 @@
         }
 
         #level-up-text { font-size: 40px; top: 20%; }
+        
+        #motivational-text { 
+            font-size: 50px; 
+            top: 40%; 
+            opacity: 0.5;
+            animation: popFade 1.5s ease-out forwards;
+        }
+
+        @keyframes popFade {
+            0% { transform: scale(0.5); opacity: 0; }
+            20% { transform: scale(1.2); opacity: 1; }
+            80% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
 
         /* Left Side Control */
         #left-controls {
@@ -143,6 +157,7 @@
 
     <div id="countdown-text">3</div>
     <div id="level-up-text">LEVEL UP!</div>
+    <div id="motivational-text">GREAT!</div>
 
     <div id="menu" class="ui-overlay">
         <h1 id="menu-title">CYBER FLAP</h1>
@@ -161,6 +176,7 @@
         const scoreDisplay = document.getElementById('score-display');
         const bestScoreDisplay = document.getElementById('best-score-display');
         const levelUpDisplay = document.getElementById('level-up-text');
+        const motiDisplay = document.getElementById('motivational-text');
         const menu = document.getElementById('menu');
         const pauseMenu = document.getElementById('pause-menu');
         const countdownText = document.getElementById('countdown-text');
@@ -177,30 +193,31 @@
         bestScoreDisplay.innerText = "BEST: " + bestScore;
 
         const themes = [
-            { score: 0, bird: "#ff007f", pipe: "#7000ff", bg: "#0d001a" },
-            { score: 10, bird: "#00f2ff", pipe: "#0044ff", bg: "#000d1a" },
-            { score: 20, bird: "#adff2f", pipe: "#008000", bg: "#0a1a00" },
-            { score: 30, bird: "#ffff00", pipe: "#ff8c00", bg: "#1a0f00" },
-            { score: 40, bird: "#ffffff", pipe: "#ff0000", bg: "#1a0000" },
-            { score: 50, bird: "#ff00ff", pipe: "#ffffff", bg: "#1a1a1a" },
-            { score: 60, bird: "#00ffcc", pipe: "#0088aa", bg: "#001a1a" },
-            { score: 70, bird: "#ff3300", pipe: "#aa0000", bg: "#1a0500" },
-            { score: 80, bird: "#cc00ff", pipe: "#5500aa", bg: "#11001a" },
-            { score: 90, bird: "#ffcc00", pipe: "#aa8800", bg: "#1a1600" },
-            { score: 100, bird: "#00ff00", pipe: "#00aa00", bg: "#001a00" },
-            { score: 110, bird: "#ff0088", pipe: "#aa0044", bg: "#1a000d" },
-            { score: 120, bird: "#88ccff", pipe: "#0044aa", bg: "#000a1a" },
-            { score: 130, bird: "#ffaa00", pipe: "#aa4400", bg: "#1a0a00" },
-            { score: 140, bird: "#aa00ff", pipe: "#4400aa", bg: "#0a001a" },
-            { score: 150, bird: "#00ffff", pipe: "#008888", bg: "#001a1a" },
-            { score: 160, bird: "#ff5555", pipe: "#aa0000", bg: "#1a0000" },
-            { score: 170, bird: "#aaff00", pipe: "#44aa00", bg: "#0a1a00" },
-            { score: 180, bird: "#ff00cc", pipe: "#aa0055", bg: "#1a0011" },
-            { score: 190, bird: "#55aaff", pipe: "#0022aa", bg: "#00051a" },
-            { score: 200, bird: "#ffffff", pipe: "#aaaaaa", bg: "#000000" } 
+            { score: 0, bird: "#ff007f", pipe: "#7000ff", bg: "#0d001a", shape: "rect" },
+            { score: 10, bird: "#00f2ff", pipe: "#0044ff", bg: "#000d1a", shape: "circle" },
+            { score: 20, bird: "#adff2f", pipe: "#008000", bg: "#0a1a00", shape: "triangle" },
+            { score: 30, bird: "#ffff00", pipe: "#ff8c00", bg: "#1a0f00", shape: "diamond" },
+            { score: 40, bird: "#ffffff", pipe: "#ff0000", bg: "#1a0000", shape: "rect" },
+            { score: 50, bird: "#ff00ff", pipe: "#ffffff", bg: "#1a1a1a", shape: "circle" },
+            { score: 60, bird: "#00ffcc", pipe: "#0088aa", bg: "#001a1a", shape: "triangle" },
+            { score: 70, bird: "#ff3300", pipe: "#aa0000", bg: "#1a0500", shape: "diamond" },
+            { score: 80, bird: "#cc00ff", pipe: "#5500aa", bg: "#11001a", shape: "rect" },
+            { score: 90, bird: "#ffcc00", pipe: "#aa8800", bg: "#1a1600", shape: "circle" },
+            { score: 100, bird: "#00ff00", pipe: "#00aa00", bg: "#001a00", shape: "triangle" },
+            { score: 110, bird: "#ff0088", pipe: "#aa0044", bg: "#1a000d", shape: "diamond" },
+            { score: 120, bird: "#88ccff", pipe: "#0044aa", bg: "#000a1a", shape: "rect" },
+            { score: 130, bird: "#ffaa00", pipe: "#aa4400", bg: "#1a0a00", shape: "circle" },
+            { score: 140, bird: "#aa00ff", pipe: "#4400aa", bg: "#0a001a", shape: "triangle" },
+            { score: 150, bird: "#00ffff", pipe: "#008888", bg: "#001a1a", shape: "diamond" },
+            { score: 160, bird: "#ff5555", pipe: "#aa0000", bg: "#1a0000", shape: "rect" },
+            { score: 170, bird: "#aaff00", pipe: "#44aa00", bg: "#0a1a00", shape: "circle" },
+            { score: 180, bird: "#ff00cc", pipe: "#aa0055", bg: "#1a0011", shape: "triangle" },
+            { score: 190, bird: "#55aaff", pipe: "#0022aa", bg: "#00051a", shape: "diamond" },
+            { score: 200, bird: "#ffffff", pipe: "#aaaaaa", bg: "#000000", shape: "rect" } 
         ];
 
         let currentTheme = themes[0];
+        const motivationWords = ["GREAT!", "AMAZING!", "AWESOME!", "UNSTOPPABLE!", "GODLIKE!", "BEAST MODE!"];
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -235,6 +252,9 @@
             if (newTheme && newTheme.score !== currentTheme.score) {
                 currentTheme = newTheme;
                 showLevelUp();
+            } else if (score > 0 && score % 5 === 0) {
+                // Show motivation every 5 points, unless it's a level up (every 10)
+                showMotivation();
             }
         }
 
@@ -242,6 +262,20 @@
             levelUpDisplay.style.display = 'block';
             levelUpDisplay.style.color = currentTheme.bird;
             setTimeout(() => { levelUpDisplay.style.display = 'none'; }, 1500);
+        }
+
+        function showMotivation() {
+            let randomWord = motivationWords[Math.floor(Math.random() * motivationWords.length)];
+            motiDisplay.innerText = randomWord;
+            motiDisplay.style.color = currentTheme.bird;
+            motiDisplay.style.display = 'block';
+            
+            // Reset animation
+            motiDisplay.style.animation = 'none';
+            motiDisplay.offsetHeight; 
+            motiDisplay.style.animation = null;
+
+            setTimeout(() => { motiDisplay.style.display = 'none'; }, 1500);
         }
 
         function startTimer(seconds) {
@@ -280,6 +314,7 @@
                     countdownText.style.display = 'none';
                     inCountdown = false;
                     isPaused = false;
+                    flap(); // Auto jump after resume too
                     requestAnimationFrame(update);
                 }
             }, 1000);
@@ -295,6 +330,8 @@
             gameRunning = true;
             isPaused = false;
             scoreDisplay.innerText = "SCORE: 0";
+            
+            flap(); // Bird jumps up automatically on start!
             requestAnimationFrame(update);
         }
 
@@ -364,6 +401,7 @@
             ctx.fillStyle = "#05000d";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+            // Draw Pipes
             ctx.fillStyle = currentTheme.pipe;
             ctx.shadowBlur = 15;
             ctx.shadowColor = currentTheme.pipe;
@@ -372,10 +410,33 @@
                 ctx.fillRect(p.x, p.bottom, p.width, canvas.height - p.bottom);
             });
 
+            // Draw Bird Shape
             ctx.fillStyle = currentTheme.bird;
             ctx.shadowBlur = 20;
             ctx.shadowColor = currentTheme.bird;
-            ctx.fillRect(bird.x, bird.y, bird.w, bird.h);
+            
+            ctx.beginPath();
+            let cx = bird.x + bird.w / 2;
+            let cy = bird.y + bird.h / 2;
+
+            if (currentTheme.shape === "rect") {
+                ctx.fillRect(bird.x, bird.y, bird.w, bird.h);
+            } else if (currentTheme.shape === "circle") {
+                ctx.arc(cx, cy, bird.w / 2, 0, Math.PI * 2);
+                ctx.fill();
+            } else if (currentTheme.shape === "triangle") {
+                ctx.moveTo(cx, bird.y);
+                ctx.lineTo(bird.x + bird.w, bird.y + bird.h);
+                ctx.lineTo(bird.x, bird.y + bird.h);
+                ctx.fill();
+            } else if (currentTheme.shape === "diamond") {
+                ctx.moveTo(cx, bird.y);
+                ctx.lineTo(bird.x + bird.w, cy);
+                ctx.lineTo(cx, bird.y + bird.h);
+                ctx.lineTo(bird.x, cy);
+                ctx.fill();
+            }
+
             ctx.shadowBlur = 0;
         }
 
